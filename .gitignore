@@ -8,6 +8,9 @@ raytracer
 *.exe
 *.out
 
+# Debug files
+*.dSYM/
+
 # Ignore library files for SDL2
 lib/
 *.dll

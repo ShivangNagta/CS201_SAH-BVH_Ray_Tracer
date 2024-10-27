@@ -1,7 +1,12 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 
-int SDL_main(int argc, char* argv[]) {
+#ifdef __APPLE__
+int main(int argc, char* argv[])
+#else
+int SDL_main(int argc, char* argv[])
+#endif
+{
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;

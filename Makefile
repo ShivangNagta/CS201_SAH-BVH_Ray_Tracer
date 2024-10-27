@@ -14,8 +14,17 @@ ifeq ($(OS), Windows_NT)
     TARGET := $(TARGET).exe
     RM := del /Q
 else
-    SDL_INCLUDE := -I/usr/local/include/SDL2
-    SDL_LIB := -L/usr/local/lib -lSDL2main -lSDL2
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Darwin)
+        # macOS specific settings
+        SDL_INCLUDE := $(shell sdl2-config --cflags)
+        SDL_LIB := $(shell sdl2-config --libs)
+        CFLAGS += -arch arm64  # For Apple Silicon
+    else
+        # Linux settings
+        SDL_INCLUDE := $(shell sdl2-config --cflags)
+        SDL_LIB := $(shell sdl2-config --libs)
+    endif
     RM := rm -f
 endif
 
@@ -31,3 +40,5 @@ $(TARGET): $(SRC)
 # Clean up build artifacts
 clean:
 	$(RM) $(TARGET)
+
+
