@@ -11,12 +11,6 @@ raytracer
 # Debug files
 *.dSYM/
 
-# Ignore library files for SDL2
-lib/
-*.dll
-*.dylib
-*.so
-
 # Ignore system files
 .DS_Store
 Thumbs.db
