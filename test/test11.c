@@ -6,7 +6,7 @@
 
 #define WIDTH 800
 #define HEIGHT 600
-#define NUM_SPHERES 500
+#define NUM_SPHERES 100
 #define MOVE_SPEED 0.5f
 #define ROTATE_SPEED 0.002f
 #define MAX_DEPTH 5
@@ -156,7 +156,7 @@ Vec3 random_in_unit_sphere() {
 // Create objects
 Sphere create_random_sphere(int is_glass) {
     Sphere sphere = {
-        .center = {random_float(-10, 5), random_float(-5, 6), random_float(-10, 5)},
+        .center = {random_float(-5, 5), random_float(0.5, 5), random_float(-5, 5)},
         .radius = random_float(0.5f, 1.5f),
         .color = {rand() % 256, rand() % 256, rand() % 256, 255},
         .reflectivity = is_glass ? 0.9f : random_float(0.0f, 0.5f),
@@ -580,7 +580,7 @@ int main(int argc, char *argv[]) {
 
     // Create camera
     Camera camera = {
-        .position = {2, 4, 15},
+        .position = {2, 4, 5},
         .forward = {0, 0, -1},
         .right = {1, 0, 0},
         .up = {0, 1, 0},
