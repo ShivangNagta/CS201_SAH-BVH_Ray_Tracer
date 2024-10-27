@@ -1,0 +1,38 @@
+# Ignore compiled executables
+raytracer.exe
+raytracer
+
+# Ignore object files and build artifacts
+*.o
+*.obj
+*.exe
+*.out
+
+# Ignore library files for SDL2
+lib/
+*.dll
+*.dylib
+*.so
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore MacOS-specific files
+*.DS_Store
+
+# Ignore Windows-specific files
+*.log
+*.pdb
+*.ilk
+
+# Ignore IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# Ignore temporary files and backups
+*.tmp
+*~
