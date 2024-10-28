@@ -21,7 +21,7 @@
 #define NK_IMPLEMENTATION
 #define NK_SDL_RENDERER_IMPLEMENTATION
 #include <Nuklear/nuklear.h>
-#include <Nuklear/nuklear_sdl_renderer.h>
+#include "nuklear_sdl_renderer.h"
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
