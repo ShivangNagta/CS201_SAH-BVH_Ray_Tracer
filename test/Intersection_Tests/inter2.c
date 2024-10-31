@@ -1,11 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <math.h>
-
-typedef struct {
-    float x, y, z;
-} Vec3;
+#include "Custom/Math/vec3.h"
 
 typedef struct {
     Vec3 origin;
@@ -29,19 +25,6 @@ typedef struct BVHNode {
     struct BVHNode* right;
 } BVHNode;
 
-// Vector operations
-Vec3 vec3_sub(Vec3 a, Vec3 b) {
-    return (Vec3){a.x - b.x, a.y - b.y, a.z - b.z};
-}
-
-Vec3 vec3_normalize(Vec3 v) {
-    float length = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
-    return (Vec3){v.x / length, v.y / length, v.z / length};
-}
-
-float vec3_dot(Vec3 a, Vec3 b) {
-    return a.x * b.x + a.y * b.y + a.z * b.z;
-}
 
 // Ray-Sphere intersection that returns distance
 float ray_sphere_intersection(Ray ray, Sphere sphere) {
