@@ -3,7 +3,7 @@ CC := gcc
 CFLAGS := -Wall -Iinclude 
 
 # Source and target
-SRC := src/vec3.c src/camera.c src/sphere.c src/ray.c src/hit.c src/bvh.c src/renderer.c src/main.c
+SRC := src/vec3.c src/camera.c src/sphere.c src/ray.c src/bvh.c src/hit.c src/renderer.c src/main.c
 TARGET := raytracer
 
 # SDL2 library and includes setup
