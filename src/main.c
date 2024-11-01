@@ -4,6 +4,8 @@
 #include <time.h>
 #include <math.h>
 #include <SDL2/SDL_image.h>
+#include <Nuklear/nuklear.h>
+#include <Nuklear/nuklear_sdl_renderer.h>
 #include "Custom/constants.h"
 #include "Custom/camera.h"
 #include "Custom/sphere.h"
@@ -15,70 +17,68 @@
 #include "Custom/benchmark.h"
 
 
+#define WIDTH 800
+#define HEIGHT 600
+#define NUM_SPHERES 3
 
-double get_time() {
+// Helper function for time calculations
+double get_time()
+{
     return (double)clock() / CLOCKS_PER_SEC;
 }
 
-// Modified plot display function
-void display_plot_with_sdl(SDL_Renderer* renderer) {
-    // Initialize SDL_image with PNG support
+// Plotting the graph img with sdl renderer, whose data was generated in case 1 (benchmark testing)
+// Generated data was orginally plotted with gnuplot and saved to png
+void display_plot_with_sdl(SDL_Renderer *renderer)
+{
+
     int imgFlags = IMG_INIT_PNG;
-    if (!(IMG_Init(imgFlags) & imgFlags)) {
+    if (!(IMG_Init(imgFlags) & imgFlags))
+    {
         printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
         return;
     }
 
-    // Load the generated PNG
-    SDL_Surface* plot_surface = IMG_Load("benchmark_results.png");
-    if (!plot_surface) {
+    SDL_Surface *plot_surface = IMG_Load("benchmark_results.png");
+    if (!plot_surface)
+    {
         printf("Error loading plot: %s\n", IMG_GetError());
         return;
     }
-    
-    // Create texture from surface
-    SDL_Texture* plot_texture = SDL_CreateTextureFromSurface(renderer, plot_surface);
+
+    SDL_Texture *plot_texture = SDL_CreateTextureFromSurface(renderer, plot_surface);
     SDL_FreeSurface(plot_surface);
-    
-    if (!plot_texture) {
+
+    if (!plot_texture)
+    {
         printf("Error creating texture: %s\n", SDL_GetError());
         return;
     }
-    
-    // Get texture size
+
     int width, height;
     SDL_QueryTexture(plot_texture, NULL, NULL, &width, &height);
-    
-    // Create destination rectangle
     SDL_Rect dest_rect = {
-        .x = (WIDTH - width) / 2,   // Center horizontally
-        .y = (HEIGHT - height) / 2,  // Center vertically
+        .x = (WIDTH - width) / 2,
+        .y = (HEIGHT - height) / 2,
         .w = width,
-        .h = height
-    };
-    
-    // Clear screen
+        .h = height};
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    
-    // Render plot
     SDL_RenderCopy(renderer, plot_texture, NULL, &dest_rect);
     SDL_RenderPresent(renderer);
-    
-    // Cleanup
     SDL_DestroyTexture(plot_texture);
     IMG_Quit();
 }
 
 #ifdef __APPLE__
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 #else
-int SDL_main(int argc, char* argv[])
+int SDL_main(int argc, char *argv[])
 #endif
 {
+
     srand(time(NULL));
-
-
 
     printf("\nPlease proceed as follows :\n\n");
     printf("Press '1' for benchmark testing with graph plot.\n");
@@ -93,103 +93,121 @@ int SDL_main(int argc, char* argv[])
     switch (input)
     {
 
-//------------------------------------------------------------------------------------------
+        //----------------------------------------------------------------------------------------------------
 
-    // Benchmark Testing
+        // Benchmark Testing
+        // Runs testing defined in benchmark.c through function call - run_benchmark_with_plotting();
+        // Testing is done for the intersection of rays with the randomly generated spheres.
 
     case 1:
     {
-            if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
+        if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        {
+            printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+            return 1;
+        }
 
-    SDL_Window* window = SDL_CreateWindow("Raytracer", 
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-        WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
-    if (!window) {
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
+        SDL_Window *window = SDL_CreateWindow("Testing",
+                                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                              WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+        if (!window)
+        {
+            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+            return 1;
+        }
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer) {
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
+        SDL_Renderer *renderer = SDL_CreateRenderer(window, -1,
+                                                    SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        if (!renderer)
+        {
+            printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return 1;
+        }
 
         run_benchmark_with_plotting();
-        if (renderer) {
+        if (renderer)
+        {
             display_plot_with_sdl(renderer);
-            // Wait for user input to continue
             SDL_Event e;
-            while (SDL_WaitEvent(&e)) {
-                if (e.type == SDL_QUIT || 
-                    (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
+            while (SDL_WaitEvent(&e))
+            {
+                if (e.type == SDL_QUIT ||
+                    (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE))
+                {
                     break;
                 }
             }
         }
-        break;
-
-    }
-//------------------------------------------------------------------------------------------
-
-
-    //Realtime Raytracing   
-    case 2:
-        {
-                if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Window* window = SDL_CreateWindow("Raytracer", 
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-        WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
-    if (!window) {
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer) {
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        
+        SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         SDL_Quit();
-        return 1;
+        break;
     }
+        //----------------------------------------------------------------------------------------------------
+
+        // Realtime Raytracing on CPU
+        // Scene has only spheres for now, adding custom mesh is not yet supported
+        // Both with and without BVH can be used for rendering the scene (not much 
+        // difference would be observed for less number of spheres, and cpu would not
+        // able to render high number of spheres, so kindly use benchmark testing to see the difference)
+        // Number of spheres can be defined in constants header file (include/Custom/constants.h)
+        // Camera has been added for moving in the defined scene
+
+    case 2:
+    {
+        if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        {
+            printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+            return 1;
+        }
+
+        SDL_Window *window = SDL_CreateWindow("Raytracer",
+                                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                              WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+        if (!window)
+        {
+            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+            return 1;
+        }
+
+        SDL_Renderer *renderer = SDL_CreateRenderer(window, -1,
+                                                    SDL_RENDERER_PRESENTVSYNC);
+        if (!renderer)
+        {
+            printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return 1;
+        }
 
         Camera camera = {
-            .position = {2, 4, 5},
+            .position = {0, 4, 10},
             .forward = {0, 0, -1},
             .right = {1, 0, 0},
             .up = {0, 1, 0},
             .yaw = -M_PI,
-            .pitch = 0
-        };
+            .pitch = 0};
 
+        Sphere spheres[3];
 
-        Sphere spheres[NUM_SPHERES];
-        
-        spheres[0] = create_light_sphere();   
-        spheres[1] = create_random_sphere(1);  
-        spheres[1].center = (Vec3){0, 1, 0};  
-        for (int i = 2; i < NUM_SPHERES; i++) {
-            spheres[i] = create_random_sphere(0);
-        }
+        spheres[0] = create_sphere(((Vec3){0.0f, -50.0f, -10.0f}), 50.0f);
+        spheres[1] = create_sphere(((Vec3){5.0f, 5.0f, -5.0f}), 3.0f);
+        spheres[2] = create_sphere(((Vec3){-5.0f, 5.0f, -5.0f}), 3.0f);
+
+        // for (int i = 2; i < NUM_SPHERES; i++)
+        // {
+        //     spheres[i] = create_random_sphere(0);
+        // }
 
         printf("Building BVH...\n");
         double bvh_start = get_time();
-        BVHNode* root = build_bvh_node(spheres, 0, NUM_SPHERES, 0);
+        BVHNode *root = build_bvh_node(spheres, 0, NUM_SPHERES, 0);
         double bvh_end = get_time();
         double bvh_build_time = bvh_end - bvh_start;
         printf("BVH built in %f seconds\n", bvh_build_time);
-
 
         int quit = 0;
         SDL_Event e;
@@ -198,49 +216,55 @@ int SDL_main(int argc, char* argv[])
         double frame_start, frame_end;
         double total_render_time = 0;
 
-    
         int use_bvh = 1;
 
-        while (!quit) {
-            while (SDL_PollEvent(&e) != 0) {
-                if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
+        while (!quit)
+        {
+            while (SDL_PollEvent(&e) != 0)
+            {
+                if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE))
+                {
                     quit = 1;
                 }
-                else if (e.type == SDL_KEYDOWN) {
-                    switch (e.key.keysym.sym) {
-                        case SDLK_w:
-                            camera.position = vec3_add(camera.position, 
-                                vec3_multiply(camera.forward, MOVE_SPEED));
-                            break;
-                        case SDLK_s:
-                            camera.position = vec3_sub(camera.position, 
-                                vec3_multiply(camera.forward, MOVE_SPEED));
-                            break;
-                        case SDLK_a:
-                            camera.position = vec3_sub(camera.position, 
-                                vec3_multiply(camera.right, MOVE_SPEED));
-                            break;
-                        case SDLK_d:
-                            camera.position = vec3_add(camera.position, 
-                                vec3_multiply(camera.right, MOVE_SPEED));
-                            break;
-                        case SDLK_SPACE:
-                            camera.position.y += MOVE_SPEED;
-                            break;
-                        case SDLK_LSHIFT:
-                            camera.position.y -= MOVE_SPEED;
-                            break;
-                        case SDLK_b: 
-                            use_bvh = !use_bvh;
-                            printf("BVH %s\n", use_bvh ? "enabled" : "disabled");
-                            break;
+                else if (e.type == SDL_KEYDOWN)
+                {
+                    switch (e.key.keysym.sym)
+                    {
+                    case SDLK_w:
+                        camera.position = vec3_add(camera.position,
+                                                   vec3_multiply(camera.forward, MOVE_SPEED));
+                        break;
+                    case SDLK_s:
+                        camera.position = vec3_sub(camera.position,
+                                                   vec3_multiply(camera.forward, MOVE_SPEED));
+                        break;
+                    case SDLK_a:
+                        camera.position = vec3_sub(camera.position,
+                                                   vec3_multiply(camera.right, MOVE_SPEED));
+                        break;
+                    case SDLK_d:
+                        camera.position = vec3_add(camera.position,
+                                                   vec3_multiply(camera.right, MOVE_SPEED));
+                        break;
+                    case SDLK_SPACE:
+                        camera.position.y += MOVE_SPEED;
+                        break;
+                    case SDLK_LSHIFT:
+                        camera.position.y -= MOVE_SPEED;
+                        break;
+                    case SDLK_b:
+                        use_bvh = !use_bvh;
+                        printf("BVH %s\n", use_bvh ? "enabled" : "disabled");
+                        break;
                     }
                 }
-                else if (e.type == SDL_MOUSEMOTION) {
-                    if (e.motion.state & SDL_BUTTON_LMASK) {
+                else if (e.type == SDL_MOUSEMOTION)
+                {
+                    if (e.motion.state & SDL_BUTTON_LMASK)
+                    {
                         camera.yaw += e.motion.xrel * ROTATE_SPEED;
                         camera.pitch -= e.motion.yrel * ROTATE_SPEED;
-                        camera.pitch = fmax(fmin(camera.pitch, M_PI/2 - 0.1f), -M_PI/2 + 0.1f);
+                        camera.pitch = fmax(fmin(camera.pitch, M_PI / 2 - 0.1f), -M_PI / 2 + 0.1f);
                         camera_update(&camera);
                     }
                 }
@@ -249,22 +273,21 @@ int SDL_main(int argc, char* argv[])
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
 
-
-            // #pragma omp parallel for collapse(2)
-            for (int y = 0; y < HEIGHT; y++) {
-                for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++)
+            {
+                for (int x = 0; x < WIDTH; x++)
+                {
                     float u = (float)x / WIDTH - 0.5f;
                     float v = (float)y / HEIGHT - 0.5f;
-                    
+
                     Ray ray = get_camera_ray(&camera, u, -v);
-                    SDL_Color color = trace_ray(ray, spheres, NUM_SPHERES, MAX_DEPTH, 
-                                            use_bvh ? root : NULL);
-                    
+                    SDL_Color color = trace_ray(ray, spheres, NUM_SPHERES, MAX_DEPTH,
+                                                use_bvh ? root : NULL);
+
                     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
                     SDL_RenderDrawPoint(renderer, x, y);
                 }
             }
-
 
             SDL_RenderPresent(renderer);
             frame_end = get_time();
@@ -272,10 +295,11 @@ int SDL_main(int argc, char* argv[])
             total_render_time += frame_time;
             frame_count++;
 
-            if (frame_count % 10 == 0) {
-                printf("Average frame time: %f seconds (%.2f FPS)\n", 
-                    total_render_time / frame_count,
-                    frame_count / total_render_time);
+            if (frame_count % 10 == 0)
+            {
+                printf("Average frame time: %f seconds (%.2f FPS)\n",
+                       total_render_time / frame_count,
+                       frame_count / total_render_time);
             }
         }
 
@@ -285,12 +309,12 @@ int SDL_main(int argc, char* argv[])
         printf("Average FPS: %.2f\n", frame_count / total_render_time);
         printf("BVH build time: %f seconds\n", bvh_build_time);
 
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
         break;
-        }
-//------------------------------------------------------------------------------------------
+    }
+        //------------------------------------------------------------------------------------------
 
     case 3:
         printf("To do");
@@ -298,7 +322,7 @@ int SDL_main(int argc, char* argv[])
     case 4:
         printf("To do");
         break;
-    
+
     default:
         printf("Please press only among the given options");
         break;
@@ -306,7 +330,5 @@ int SDL_main(int argc, char* argv[])
 
     // Cleanup
 
-
     return 0;
- 
 }

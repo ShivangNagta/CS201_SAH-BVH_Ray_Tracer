@@ -32,6 +32,21 @@ Sphere create_benchmark_sphere(Vec3 center){
     return sphere;
 }
 
+Sphere create_sphere(Vec3 center, float radius){
+    Sphere sphere = {
+        .center = center,
+        .radius = radius,
+        .color = {rand() % 256, rand() % 256, rand() % 256, 255},
+        .reflectivity = random_float(0.0f, 0.5f),
+        .transparency =  0.0f,
+        .refractive_index = 1.0f,
+        .diffuse = random_float(0.1f, 0.9f),
+        .specular = random_float(1.0f, 32.0f),
+        .is_light = 0
+    };
+    return sphere;
+}
+
 Sphere create_random_sphere(int is_glass) {
     Sphere sphere = {
         .center = {random_float(-5, 5), random_float(0.5, 5), random_float(-5, 5)},

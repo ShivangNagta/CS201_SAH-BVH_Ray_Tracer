@@ -17,5 +17,6 @@ typedef struct {
 } Sphere;
 
 Sphere create_benchmark_sphere(Vec3 center);
+Sphere create_sphere(Vec3 center, float radius);
 Sphere create_random_sphere(int is_glass);
 Sphere create_light_sphere();
