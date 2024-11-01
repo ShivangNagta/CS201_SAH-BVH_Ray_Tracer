@@ -10,6 +10,66 @@
 #define GNUPLOT_PATH "gnuplot"
 #endif
 
+// In benchmark.c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifdef _WIN32
+    #define PRIu64 "I64u"
+    #include <windows.h>
+#else
+    #include <inttypes.h>
+#endif
+
+void run_gnuplot(void) {
+    #ifdef _WIN32
+        char command[512];
+        // Convert GNUPLOT_PATH to use forward slashes
+        char gnuplot_path[256];
+        strncpy(gnuplot_path, GNUPLOT_PATH, sizeof(gnuplot_path) - 1);
+        for (char *p = gnuplot_path; *p; p++) {
+            if (*p == '\\') *p = '/';
+        }
+        
+        // Create the command with proper quoting
+        snprintf(command, sizeof(command), 
+                "cmd /c \"\"%s\" \"%s/plot_benchmark.gnu\"\"", 
+                gnuplot_path,
+                getcwd(NULL, 0));
+    #else
+        char command[256];
+        snprintf(command, sizeof(command), 
+                "%s plot_benchmark.gnu", 
+                GNUPLOT_PATH);
+    #endif
+
+    printf("Executing command: %s\n", command);
+    int result = system(command);
+    
+    if (result != 0) {
+        printf("Warning: Gnuplot command returned error code %d\n", result);
+    }
+
+    // Wait a moment for the file to be created
+    #ifdef _WIN32
+        Sleep(1000);  // Wait 1 second
+    #else
+        sleep(1);
+    #endif
+
+    // Check if the output file exists
+    FILE* test = fopen("benchmark_results.png", "rb");
+    if (test) {
+        fclose(test);
+        printf("Successfully created benchmark_results.png\n");
+    } else {
+        printf("Warning: benchmark_results.png was not created\n");
+    }
+}
+
+
 void free_bvh(BVHNode* node) {
     if (!node) return;
     free_bvh(node->left);
@@ -85,19 +145,7 @@ double get_max_time(const char* filename) {
 
 
 
-// Function to run gnuplot
-void run_gnuplot() {
-    char command[256];
-    snprintf(command, sizeof(command), "%s plot_benchmark.gnu", GNUPLOT_PATH);
-    
-    int result = system(command);
-    if (result != 0) {
-        printf("Error running gnuplot. Make sure gnuplot is installed and accessible.\n");
-        return;
-    }
-    
-    printf("\nBenchmark plot has been saved as 'benchmark_results.png'\n");
-}
+
 
 
 
@@ -147,7 +195,11 @@ double benchmark_no_bvh(Sphere* spheres, int num_spheres, int num_rays) {
     
     printf("No BVH:\n");
     printf("Time: %f seconds\n", time_spent);
+#ifdef _WIN32
+    printf("Intersection tests: %llu\n", intersection_tests);
+#else
     printf("Intersection tests: %lld\n", intersection_tests);
+#endif
     printf("Intersections found: %d\n\n", intersections);
     
     return time_spent;
@@ -191,9 +243,9 @@ void run_benchmark_with_plotting() {
     srand(time(NULL));
     
     // Use equally spaced points
-     int sphere_counts[100];
+     int sphere_counts[10];
      int s = 50;
-    for(int i = 0; i < 100; i++){
+    for(int i = 0; i < 10; i++){
         sphere_counts[i] = s;
         s+= 50;
     }

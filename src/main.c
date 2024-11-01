@@ -16,7 +16,9 @@
 
 
 
-
+double get_time() {
+    return (double)clock() / CLOCKS_PER_SEC;
+}
 
 // Modified plot display function
 void display_plot_with_sdl(SDL_Renderer* renderer) {
@@ -76,27 +78,7 @@ int SDL_main(int argc, char* argv[])
 {
     srand(time(NULL));
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
 
-    SDL_Window* window = SDL_CreateWindow("Raytracer", 
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-        WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
-    if (!window) {
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer) {
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
 
     printf("\nPlease proceed as follows :\n\n");
     printf("Press '1' for benchmark testing with graph plot.\n");
@@ -117,6 +99,27 @@ int SDL_main(int argc, char* argv[])
 
     case 1:
     {
+            if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Window* window = SDL_CreateWindow("Raytracer", 
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
+        WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+    if (!window) {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!renderer) {
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
 
         run_benchmark_with_plotting();
         if (renderer) {
@@ -139,6 +142,27 @@ int SDL_main(int argc, char* argv[])
     //Realtime Raytracing   
     case 2:
         {
+                if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Window* window = SDL_CreateWindow("Raytracer", 
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
+        WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+    if (!window) {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!renderer) {
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
 
         Camera camera = {
             .position = {2, 4, 5},
@@ -160,12 +184,10 @@ int SDL_main(int argc, char* argv[])
         }
 
         printf("Building BVH...\n");
-        struct timespec bvh_start, bvh_end;
-        clock_gettime(CLOCK_MONOTONIC, &bvh_start);
+        double bvh_start = get_time();
         BVHNode* root = build_bvh_node(spheres, 0, NUM_SPHERES, 0);
-        clock_gettime(CLOCK_MONOTONIC, &bvh_end);
-        double bvh_build_time = (bvh_end.tv_sec - bvh_start.tv_sec) + 
-                            (bvh_end.tv_nsec - bvh_start.tv_nsec) / 1e9;
+        double bvh_end = get_time();
+        double bvh_build_time = bvh_end - bvh_start;
         printf("BVH built in %f seconds\n", bvh_build_time);
 
 
@@ -173,7 +195,7 @@ int SDL_main(int argc, char* argv[])
         SDL_Event e;
 
         int frame_count = 0;
-        struct timespec frame_start, frame_end;
+        double frame_start, frame_end;
         double total_render_time = 0;
 
     
@@ -223,13 +245,12 @@ int SDL_main(int argc, char* argv[])
                     }
                 }
             }
-
-            clock_gettime(CLOCK_MONOTONIC, &frame_start);
+            frame_start = get_time();
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
 
 
-            #pragma omp parallel for collapse(2)
+            // #pragma omp parallel for collapse(2)
             for (int y = 0; y < HEIGHT; y++) {
                 for (int x = 0; x < WIDTH; x++) {
                     float u = (float)x / WIDTH - 0.5f;
@@ -246,9 +267,8 @@ int SDL_main(int argc, char* argv[])
 
 
             SDL_RenderPresent(renderer);
-            clock_gettime(CLOCK_MONOTONIC, &frame_end);
-            double frame_time = (frame_end.tv_sec - frame_start.tv_sec) + 
-                            (frame_end.tv_nsec - frame_start.tv_nsec) / 1e9;
+            frame_end = get_time();
+            double frame_time = frame_end - frame_start;
             total_render_time += frame_time;
             frame_count++;
 
@@ -265,7 +285,9 @@ int SDL_main(int argc, char* argv[])
         printf("Average FPS: %.2f\n", frame_count / total_render_time);
         printf("BVH build time: %f seconds\n", bvh_build_time);
 
-
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
         break;
         }
 //------------------------------------------------------------------------------------------
@@ -283,9 +305,7 @@ int SDL_main(int argc, char* argv[])
     }
 
     // Cleanup
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+
 
     return 0;
  
