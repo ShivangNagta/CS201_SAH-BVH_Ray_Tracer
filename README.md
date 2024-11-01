@@ -1,10 +1,13 @@
 # CS201_SAH-BVH_Ray_Tracer
 
-mac -
-install sdl2
-install sdl2_image
 
-todo -
-static rendering
-mesh bvh
+
+mac - </br>
+install sdl2, sdl2_image, gnuplot
+
+windows - </br>
+install gnuplot
+
+todo - </br>
+static rendering, mesh bvh
 
