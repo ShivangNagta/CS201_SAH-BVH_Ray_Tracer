@@ -11,11 +11,6 @@
 #define GNUPLOT_PATH "gnuplot"
 #endif
 
-// In benchmark.c
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #ifdef _WIN32
     #define PRIu64 "I64u"
@@ -27,14 +22,11 @@
 void run_gnuplot(void) {
     #ifdef _WIN32
         char command[512];
-        // Convert GNUPLOT_PATH to use forward slashes
         char gnuplot_path[256];
         strncpy(gnuplot_path, GNUPLOT_PATH, sizeof(gnuplot_path) - 1);
         for (char *p = gnuplot_path; *p; p++) {
             if (*p == '\\') *p = '/';
         }
-        
-        // Create the command with proper quoting
         snprintf(command, sizeof(command), 
                 "cmd /c \"\"%s\" \"%s/plot_benchmark.gnu\"\"", 
                 gnuplot_path,
@@ -52,15 +44,13 @@ void run_gnuplot(void) {
     if (result != 0) {
         printf("Warning: Gnuplot command returned error code %d\n", result);
     }
-
-    // Wait a moment for the file to be created
     #ifdef _WIN32
-        Sleep(1000);  // Wait 1 second
+        Sleep(1000);
     #else
         sleep(1);
     #endif
 
-    // Check if the output file exists
+
     FILE* test = fopen("benchmark_results.png", "rb");
     if (test) {
         fclose(test);
@@ -91,7 +81,7 @@ void create_gnuplot_script(const char* data_filename) {
     fprintf(gnuplot_script, "set xlabel 'Number of Spheres'\n");
     fprintf(gnuplot_script, "set ylabel 'Time (seconds)'\n");
     
-    // Remove logarithmic scaling
+
     // fprintf(gnuplot_script, "set logscale x\n");
     // fprintf(gnuplot_script, "set logscale y\n");
     
@@ -238,12 +228,10 @@ double benchmark_with_bvh(BVHNode* root, int num_spheres, int num_rays) {
 }
 
 void run_benchmark_with_plotting() {
-    // Remove existing data file
-    remove("benchmark_data.txt");
     
+    remove("benchmark_data.txt");
     srand(time(NULL));
     
-    // Use equally spaced points
     //  int sphere_counts[1000];
     //  int s = 50;
     // for(int i = 0; i < 1000; i++){
@@ -273,16 +261,14 @@ void run_benchmark_with_plotting() {
         double time_no_bvh = benchmark_no_bvh(spheres, num_spheres, num_rays);
         double time_with_bvh = benchmark_with_bvh(root, num_spheres, num_rays);
         
-        // Save results to file
+
         save_benchmark_data("benchmark_data.txt", num_spheres, time_no_bvh, time_with_bvh);
-        
         free_bvh(root);
         free(spheres);
         
         printf("----------------------------------------\n");
     }
     
-    // Create and execute gnuplot script
     create_gnuplot_script("benchmark_data.txt");
     run_gnuplot();
     printf("\nBenchmark plot has been saved as 'benchmark_results.png'\n");

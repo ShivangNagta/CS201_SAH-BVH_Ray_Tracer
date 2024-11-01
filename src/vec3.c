@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdlib.h>
 
 typedef struct Vec3{
     float x;
@@ -52,4 +53,15 @@ Vec3 vec3_refract(Vec3 uv, Vec3 n, float etai_over_etat) {
         -sqrt(fabs(1.0 - vec3_dot(r_out_perp, r_out_perp)))
     );
     return vec3_add(r_out_perp, r_out_parallel);
+}
+
+Vec3 vec3_random(float min, float max){
+    float x = min + (float)rand() / RAND_MAX * (max - min);
+    float y = min + (float)rand() / RAND_MAX * (max - min);
+    float z = min + (float)rand() / RAND_MAX * (max - min);
+    return (Vec3){x, y, z};
+}
+
+float vec3_len_sq(Vec3 a){
+    return a.x*a.x + a.y*a.y + a.z*a.z;
 }

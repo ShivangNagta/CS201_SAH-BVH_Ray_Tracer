@@ -16,10 +16,14 @@
 #include "Custom/vec3.h"
 #include "Custom/benchmark.h"
 
-
-#define WIDTH 800
+#define WIDTH 1000
 #define HEIGHT 600
-#define NUM_SPHERES 3
+#define NUM_SPHERES 2
+#define MAX_DEPTH 20
+
+typedef struct {
+    float r, g, b;
+} FloatColor;
 
 // Helper function for time calculations
 double get_time()
@@ -140,7 +144,7 @@ int SDL_main(int argc, char *argv[])
                 }
             }
         }
-        
+
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -150,7 +154,7 @@ int SDL_main(int argc, char *argv[])
 
         // Realtime Raytracing on CPU
         // Scene has only spheres for now, adding custom mesh is not yet supported
-        // Both with and without BVH can be used for rendering the scene (not much 
+        // Both with and without BVH can be used for rendering the scene (not much
         // difference would be observed for less number of spheres, and cpu would not
         // able to render high number of spheres, so kindly use benchmark testing to see the difference)
         // Number of spheres can be defined in constants header file (include/Custom/constants.h)
@@ -189,13 +193,13 @@ int SDL_main(int argc, char *argv[])
             .right = {1, 0, 0},
             .up = {0, 1, 0},
             .yaw = -M_PI,
-            .pitch = 0};
+            .pitch = 0,
+            .move = 0};
 
         Sphere spheres[3];
 
-        spheres[0] = create_sphere(((Vec3){0.0f, -50.0f, -10.0f}), 50.0f);
-        spheres[1] = create_sphere(((Vec3){5.0f, 5.0f, -5.0f}), 3.0f);
-        spheres[2] = create_sphere(((Vec3){-5.0f, 5.0f, -5.0f}), 3.0f);
+        spheres[0] = create_sphere(((Vec3){0.0f, -100.0f, -5.0f}), 100.0f);
+        spheres[1] = create_sphere(((Vec3){0.0f, 3.0f, -5.0f}), 3.0f);
 
         // for (int i = 2; i < NUM_SPHERES; i++)
         // {
@@ -218,10 +222,17 @@ int SDL_main(int argc, char *argv[])
 
         int use_bvh = 1;
 
+        int accumulated_frames = 1;
+        FloatColor accumulated_colors[WIDTH][HEIGHT] = {{{0.0f, 0.0f, 0.0f}}};
+
         while (!quit)
         {
+
+            
+            frame_start = get_time();
             while (SDL_PollEvent(&e) != 0)
             {
+
                 if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE))
                 {
                     quit = 1;
@@ -233,24 +244,30 @@ int SDL_main(int argc, char *argv[])
                     case SDLK_w:
                         camera.position = vec3_add(camera.position,
                                                    vec3_multiply(camera.forward, MOVE_SPEED));
+                        camera.move = 1;
                         break;
                     case SDLK_s:
                         camera.position = vec3_sub(camera.position,
                                                    vec3_multiply(camera.forward, MOVE_SPEED));
+                        camera.move = 1;
                         break;
                     case SDLK_a:
                         camera.position = vec3_sub(camera.position,
                                                    vec3_multiply(camera.right, MOVE_SPEED));
+                        camera.move = 1;
                         break;
                     case SDLK_d:
                         camera.position = vec3_add(camera.position,
                                                    vec3_multiply(camera.right, MOVE_SPEED));
+                        camera.move = 1;
                         break;
                     case SDLK_SPACE:
                         camera.position.y += MOVE_SPEED;
+                        camera.move = 1;
                         break;
                     case SDLK_LSHIFT:
                         camera.position.y -= MOVE_SPEED;
+                        camera.move = 1;
                         break;
                     case SDLK_b:
                         use_bvh = !use_bvh;
@@ -266,30 +283,73 @@ int SDL_main(int argc, char *argv[])
                         camera.pitch -= e.motion.yrel * ROTATE_SPEED;
                         camera.pitch = fmax(fmin(camera.pitch, M_PI / 2 - 0.1f), -M_PI / 2 + 0.1f);
                         camera_update(&camera);
+                        camera.move = 1;
                     }
                 }
             }
-            frame_start = get_time();
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-            SDL_RenderClear(renderer);
 
-            for (int y = 0; y < HEIGHT; y++)
+            if (camera.move)
             {
-                for (int x = 0; x < WIDTH; x++)
+
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                SDL_RenderClear(renderer);
+
+                float aspect_ratio = (float)WIDTH / (float)HEIGHT;
+
+                for (int y = 0; y < HEIGHT; y++)
                 {
-                    float u = (float)x / WIDTH - 0.5f;
-                    float v = (float)y / HEIGHT - 0.5f;
+                    for (int x = 0; x < WIDTH; x++)
+                    {
+                        float u = ((float)x / WIDTH - 0.5f) * aspect_ratio;
+                        float v = (float)y / HEIGHT - 0.5f;
 
-                    Ray ray = get_camera_ray(&camera, u, -v);
-                    SDL_Color color = trace_ray(ray, spheres, NUM_SPHERES, MAX_DEPTH,
-                                                use_bvh ? root : NULL);
+                        Ray ray = get_camera_ray(&camera, u, -v);
+                        SDL_Color color = trace_ray(ray, spheres, NUM_SPHERES, MAX_DEPTH, use_bvh ? root : NULL);
 
-                    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-                    SDL_RenderDrawPoint(renderer, x, y);
+                        accumulated_colors[x][y].r = (float)color.r / 255.0f;
+                        accumulated_colors[x][y].g = (float)color.g / 255.0f;
+                        accumulated_colors[x][y].b = (float)color.b / 255.0f;
+                        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+                        SDL_RenderDrawPoint(renderer, x, y);
+                    }
+                }
+
+                accumulated_frames = 1;
+                camera.move = 0;
+            }
+            else
+            {
+                accumulated_frames++;
+                float aspect_ratio = (float)WIDTH / (float)HEIGHT;
+
+                for (int y = 0; y < HEIGHT; y++)
+                {
+                    for (int x = 0; x < WIDTH; x++)
+                    {
+                        float u = ((float)x / WIDTH - 0.5f) * aspect_ratio;
+                        float v = (float)y / HEIGHT - 0.5f;
+
+                        Ray ray = get_camera_ray(&camera, u, -v);
+                        SDL_Color color = trace_ray(ray, spheres, NUM_SPHERES, MAX_DEPTH, use_bvh ? root : NULL);
+
+                        accumulated_colors[x][y].r += (float)color.r / 255.0f;
+                        accumulated_colors[x][y].g += (float)color.g / 255.0f;
+                        accumulated_colors[x][y].b += (float)color.b / 255.0f;
+
+                        SDL_Color avg_color = {
+                            (Uint8)(fmin(accumulated_colors[x][y].r / accumulated_frames * 255.0f, 255.0f)),
+                            (Uint8)(fmin(accumulated_colors[x][y].g / accumulated_frames * 255.0f, 255.0f)),
+                            (Uint8)(fmin(accumulated_colors[x][y].b / accumulated_frames * 255.0f, 255.0f)),
+                            255
+                        };
+
+                        SDL_SetRenderDrawColor(renderer, avg_color.r, avg_color.g, avg_color.b, avg_color.a);
+                        SDL_RenderDrawPoint(renderer, x, y);
+                    }
                 }
             }
-
             SDL_RenderPresent(renderer);
+
             frame_end = get_time();
             double frame_time = frame_end - frame_start;
             total_render_time += frame_time;

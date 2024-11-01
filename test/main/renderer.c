@@ -42,19 +42,20 @@ SDL_Color trace_ray(Ray ray, Sphere *spheres, int num_spheres, int depth, BVHNod
         SDL_Color base_color = closest_hit.object ? closest_hit.object->color : (SDL_Color){0.0f, 0.0f, 0.0f};
 
         // Calculate reflection
-
-        Vec3 reflected_dir = random_on_hemisphere(closest_hit.normal);
-        // Vec3 reflected_dir = vec3_reflect(ray.direction, closest_hit.normal);
-        Ray reflected_ray = {closest_hit.point, reflected_dir};
-        SDL_Color reflected_color = trace_ray(reflected_ray, spheres, num_spheres, depth - 1, bvh);
-        final_color.r = (Uint8)(base_color.r + 0.5 * reflected_color.r);
-        final_color.g = (Uint8)(base_color.g + 0.5 * reflected_color.g);
-        final_color.b = (Uint8)(base_color.b + 0.5 * reflected_color.b);
-        // final_color.r = (Uint8)(base_color.r * (1 - closest_hit.object->reflectivity) + reflected_color.r * closest_hit.object->reflectivity);
-        // final_color.g = (Uint8)(base_color.g * (1 - closest_hit.object->reflectivity) + reflected_color.g * closest_hit.object->reflectivity);
-        // final_color.b = (Uint8)(base_color.b * (1 - closest_hit.object->reflectivity) + reflected_color.b * closest_hit.object->reflectivity);
-        final_color.a = 255;
-
+        if (closest_hit.object && closest_hit.object->reflectivity > 0)
+        {
+            Vec3 reflected_dir = vec3_reflect(ray.direction, closest_hit.normal);
+            Ray reflected_ray = {closest_hit.point, reflected_dir};
+            SDL_Color reflected_color = trace_ray(reflected_ray, spheres, num_spheres, depth - 1, bvh);
+            final_color.r = (Uint8)(base_color.r * (1 - closest_hit.object->reflectivity) + reflected_color.r * closest_hit.object->reflectivity);
+            final_color.g = (Uint8)(base_color.g * (1 - closest_hit.object->reflectivity) + reflected_color.g * closest_hit.object->reflectivity);
+            final_color.b = (Uint8)(base_color.b * (1 - closest_hit.object->reflectivity) + reflected_color.b * closest_hit.object->reflectivity);
+            final_color.a = 255;
+        }
+        else
+        {
+            final_color = base_color;
+        }
 
         return final_color;
 
