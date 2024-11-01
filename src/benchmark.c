@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <SDL2/SDL_image.h>
 #include "Custom/benchmark.h"
 #include "Custom/hit.h"
@@ -243,13 +244,13 @@ void run_benchmark_with_plotting() {
     srand(time(NULL));
     
     // Use equally spaced points
-     int sphere_counts[10];
-     int s = 50;
-    for(int i = 0; i < 10; i++){
-        sphere_counts[i] = s;
-        s+= 50;
-    }
-    // int sphere_counts[] = {1000, 10000, 100000, 1000000};  // 1K to 1M
+    //  int sphere_counts[1000];
+    //  int s = 50;
+    // for(int i = 0; i < 1000; i++){
+    //     sphere_counts[i] = s;
+    //     s+= 50;
+    // }
+    int sphere_counts[] = {1000, 10000, 100000, 1000000, 10000000};  // 1K to 1M
     int num_rays = 10000;
     float world_size = 2000.0f;
     
