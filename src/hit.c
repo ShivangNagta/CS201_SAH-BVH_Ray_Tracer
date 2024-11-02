@@ -6,8 +6,8 @@
 
 //--------------------------------------------------------------------------------------------------
 
-// ray_sphere_intersect() - Returns the Hitrecord for the ray intersecting with the sphere
-// Hitrecords is a struct containing distance 
+// ray_sphere_intersect() - Returns the Hitrecord of the ray with the sphere
+// Hitrecord is a struct containing
 // - t (distance of the hitpoint from the camera initially, then the distance of the next hitpoint from the current hitpoint)
 // - point (position of the current hitpoint)
 // - normal (normal to the surface at hitpoint - point)
@@ -40,7 +40,7 @@ HitRecord ray_sphere_intersect(Ray ray, Sphere *sphere) {
 
 //--------------------------------------------------------------------------------------------------
 
-// ray_aabb_intersect() - Returns the 1 if the given AABB is hit with the ray otherwise 0
+// ray_aabb_intersect() - Returns 1 if the given AABB is hit with the ray otherwise 0
 // Performs slab test to find the intersection
 
 //--------------------------------------------------------------------------------------------------
