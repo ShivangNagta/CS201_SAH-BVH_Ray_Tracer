@@ -8,6 +8,8 @@ raytracer
 *.exe
 *.out
 
+plot_benchmark.gnu
+
 # Debug files
 *.dSYM/
 
