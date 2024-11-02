@@ -47,24 +47,39 @@ HitRecord ray_sphere_intersect(Ray ray, Sphere *sphere) {
 
 
 int ray_aabb_intersect(Ray ray, AABB box) {
-    float tx1 = (box.min.x - ray.origin.x) / ray.direction.x;
-    float tx2 = (box.max.x - ray.origin.x) / ray.direction.x;
-    float tmin = fmin(tx1, tx2);
-    float tmax = fmax(tx1, tx2);
+    float tx1, tx2, ty1, ty2, tz1, tz2;
+    float tmin, tmax;
+    
 
-    float ty1 = (box.min.y - ray.origin.y) / ray.direction.y;
-    float ty2 = (box.max.y - ray.origin.y) / ray.direction.y;
-    tmin = fmax(tmin, fmin(ty1, ty2));
-    tmax = fmin(tmax, fmax(ty1, ty2));
-
-    float tz1 = (box.min.z - ray.origin.z) / ray.direction.z;
-    float tz2 = (box.max.z - ray.origin.z) / ray.direction.z;
-    tmin = fmax(tmin, fmin(tz1, tz2));
-    tmax = fmin(tmax, fmax(tz1, tz2));
-
-    return tmax >= tmin && tmax > 0;
+    if (ray.direction.x == 0.0f) {
+        tx1 = -INFINITY;
+        tx2 = INFINITY;
+    } else {
+        tx1 = (box.min.x - ray.origin.x) / ray.direction.x;
+        tx2 = (box.max.x - ray.origin.x) / ray.direction.x;
+    }
+    
+    if (ray.direction.y == 0.0f) {
+        ty1 = -INFINITY;
+        ty2 = INFINITY;
+    } else {
+        ty1 = (box.min.y - ray.origin.y) / ray.direction.y;
+        ty2 = (box.max.y - ray.origin.y) / ray.direction.y;
+    }
+    
+    if (ray.direction.z == 0.0f) {
+        tz1 = -INFINITY;
+        tz2 = INFINITY;
+    } else {
+        tz1 = (box.min.z - ray.origin.z) / ray.direction.z;
+        tz2 = (box.max.z - ray.origin.z) / ray.direction.z;
+    }
+    
+    tmin = fmax(fmin(tx1, tx2), fmax(fmin(ty1, ty2), fmin(tz1, tz2)));
+    tmax = fmin(fmax(tx1, tx2), fmin(fmax(ty1, ty2), fmax(tz1, tz2)));
+    
+    return tmax >= tmin && tmax > EPSILON;  
 }
-
 //--------------------------------------------------------------------------------------------------
 
 // ray_bvh_intersect() - Returns the hitrecord for the given ray

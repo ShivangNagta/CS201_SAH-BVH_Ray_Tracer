@@ -14,7 +14,7 @@ time_bvh = np.array([float(line.split()[1]) for line in lines])
 plt.figure(figsize=(10, 5))
 plt.plot(n_spheres, time_bvh, marker='o', color='b', linestyle='-')
 plt.xlabel("Number of spheres")
-plt.ylabel("Time for BVH construction and Intersection Test(s)")
+plt.ylabel("Time for Intersection Tests (with BVH)")
 plt.title("Data Plot")
 plt.grid(True)
 

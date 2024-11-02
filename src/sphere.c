@@ -34,7 +34,7 @@ Vec3 random_on_hemisphere(Vec3 normal) {
 Sphere create_benchmark_sphere(Vec3 center){
     Sphere sphere = {
         .center = center,
-        .radius = 5.0f,
+        .radius = 0.5f,
         .color = {rand() % 256, rand() % 256, rand() % 256, 255},
     };
     return sphere;

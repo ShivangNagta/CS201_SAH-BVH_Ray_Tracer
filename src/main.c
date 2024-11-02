@@ -15,7 +15,7 @@
 #include "Custom/benchmark.h"
 #include "Custom/bvh_visualiser.h"
 
-#define NUM_SPHERES 10
+#define NUM_SPHERES 2
 #define MAX_DEPTH 5
 
 
