@@ -1,7 +1,11 @@
 #include <stdlib.h>
+#include <math.h>
 #include "Custom/bvh.h"
 #include "Custom/ray.h"
-#include <math.h>
+#include "Custom/vec3.h"
+#include "Custom/hit.h"
+#include "Custom/constants.h"
+
 
 AABB create_empty_aabb() {
     return (AABB){

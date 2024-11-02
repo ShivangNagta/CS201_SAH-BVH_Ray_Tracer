@@ -62,6 +62,6 @@ Vec3 vec3_random(float min, float max){
     return (Vec3){x, y, z};
 }
 
-float vec3_len_sq(Vec3 a){
-    return a.x*a.x + a.y*a.y + a.z*a.z;
+float vec3_len(Vec3 a){
+    return sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
 }

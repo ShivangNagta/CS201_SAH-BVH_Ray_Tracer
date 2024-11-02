@@ -4,6 +4,8 @@
 #include <time.h>
 #include <math.h>
 #include <SDL2/SDL_image.h>
+#include <Nuklear/nuklear.h>
+#include <Nuklear/nuklear_sdl_renderer.h>
 #include "Custom/constants.h"
 #include "Custom/camera.h"
 #include "Custom/sphere.h"
@@ -15,11 +17,10 @@
 #include "Custom/benchmark.h"
 #include "Custom/bvh_visualiser.h"
 
-
-#define NUM_SPHERES 10
-#define MAX_DEPTH 5
-
-
+#define WIDTH 1000
+#define HEIGHT 600
+#define NUM_SPHERES 20
+#define MAX_DEPTH 20
 
 typedef struct
 {
@@ -187,17 +188,17 @@ int SDL_main(int argc, char *argv[])
         }
 
         Camera camera = {
-            .position = {0, 4, 50},
+            .position = {0, 4, 20},
             .forward = {0, 0, -1},
             .right = {1, 0, 0},
             .up = {0, 1, 0},
             .yaw = -M_PI,
             .pitch = 0,
-            .fov = 45.0f,
             .move = 0};
 
         Sphere spheres[NUM_SPHERES];
 
+        // Camera_debug vis_camera = create_default_camera();
 
         // spheres[0] = create_sphere(((Vec3){0.0f, -100.0f, -5.0f}), 100.0f);
         // spheres[1] = create_sphere(((Vec3){0.0f, 3.0f, -5.0f}), 3.0f);
@@ -315,90 +316,87 @@ int SDL_main(int argc, char *argv[])
                     }
                 }
             }
-            if (show_bvh_visualization)
+            // Inside case 2, modify the rendering section:
+            if (camera.move)
             {
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
                 SDL_RenderClear(renderer);
 
-                render_debug_visualization(renderer, root, &camera);
-                draw_camera_debug(renderer, &camera, WIDTH, HEIGHT);
-                SDL_RenderPresent(renderer);
+                float aspect_ratio = (float)WIDTH / (float)HEIGHT;
+
+                for (int y = 0; y < HEIGHT; y++)
+                {
+                    for (int x = 0; x < WIDTH; x++)
+                    {
+                        float u = ((float)x / WIDTH - 0.5f) * aspect_ratio;
+                        float v = (float)y / HEIGHT - 0.5f;
+
+                        Ray ray = get_camera_ray(&camera, u, -v);
+                        SDL_Color color = trace_ray(ray, spheres, NUM_SPHERES, MAX_DEPTH, use_bvh ? root : NULL);
+
+                        accumulated_colors[x][y].r = (float)color.r / 255.0f;
+                        accumulated_colors[x][y].g = (float)color.g / 255.0f;
+                        accumulated_colors[x][y].b = (float)color.b / 255.0f;
+                        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+                        SDL_RenderDrawPoint(renderer, x, y);
+                    }
+                }
+
+                accumulated_frames = 1;
+                camera.move = 0;
             }
             else
             {
+                accumulated_frames++;
+                float aspect_ratio = (float)WIDTH / (float)HEIGHT;
 
-                if (camera.move)
+                for (int y = 0; y < HEIGHT; y++)
                 {
-
-                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-                    SDL_RenderClear(renderer);
-
-                    float aspect_ratio = (float)WIDTH / (float)HEIGHT;
-
-                    for (int y = 0; y < HEIGHT; y++)
+                    for (int x = 0; x < WIDTH; x++)
                     {
-                        for (int x = 0; x < WIDTH; x++)
-                        {
-                            float u = ((float)x / WIDTH - 0.5f) * aspect_ratio;
-                            float v = (float)y / HEIGHT - 0.5f;
+                        float u = ((float)x / WIDTH - 0.5f) * aspect_ratio;
+                        float v = (float)y / HEIGHT - 0.5f;
 
-                            Ray ray = get_camera_ray(&camera, u, -v);
-                            SDL_Color color = trace_ray(ray, spheres, NUM_SPHERES, MAX_DEPTH, use_bvh ? root : NULL);
+                        Ray ray = get_camera_ray(&camera, u, -v);
+                        SDL_Color color = trace_ray(ray, spheres, NUM_SPHERES, MAX_DEPTH, use_bvh ? root : NULL);
 
-                            accumulated_colors[x][y].r = (float)color.r / 255.0f;
-                            accumulated_colors[x][y].g = (float)color.g / 255.0f;
-                            accumulated_colors[x][y].b = (float)color.b / 255.0f;
-                            SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-                            SDL_RenderDrawPoint(renderer, x, y);
-                        }
-                    }
+                        accumulated_colors[x][y].r += (float)color.r / 255.0f;
+                        accumulated_colors[x][y].g += (float)color.g / 255.0f;
+                        accumulated_colors[x][y].b += (float)color.b / 255.0f;
 
-                    accumulated_frames = 1;
-                    camera.move = 0;
-                }
-                else
-                {
-                    accumulated_frames++;
-                    float aspect_ratio = (float)WIDTH / (float)HEIGHT;
+                        SDL_Color avg_color = {
+                            (Uint8)(fmin(accumulated_colors[x][y].r / accumulated_frames * 255.0f, 255.0f)),
+                            (Uint8)(fmin(accumulated_colors[x][y].g / accumulated_frames * 255.0f, 255.0f)),
+                            (Uint8)(fmin(accumulated_colors[x][y].b / accumulated_frames * 255.0f, 255.0f)),
+                            255};
 
-                    for (int y = 0; y < HEIGHT; y++)
-                    {
-                        for (int x = 0; x < WIDTH; x++)
-                        {
-                            float u = ((float)x / WIDTH - 0.5f) * aspect_ratio;
-                            float v = (float)y / HEIGHT - 0.5f;
-
-                            Ray ray = get_camera_ray(&camera, u, -v);
-                            SDL_Color color = trace_ray(ray, spheres, NUM_SPHERES, MAX_DEPTH, use_bvh ? root : NULL);
-
-                            accumulated_colors[x][y].r += (float)color.r / 255.0f;
-                            accumulated_colors[x][y].g += (float)color.g / 255.0f;
-                            accumulated_colors[x][y].b += (float)color.b / 255.0f;
-
-                            SDL_Color avg_color = {
-                                (Uint8)(fmin(accumulated_colors[x][y].r / accumulated_frames * 255.0f, 255.0f)),
-                                (Uint8)(fmin(accumulated_colors[x][y].g / accumulated_frames * 255.0f, 255.0f)),
-                                (Uint8)(fmin(accumulated_colors[x][y].b / accumulated_frames * 255.0f, 255.0f)),
-                                255};
-
-                            SDL_SetRenderDrawColor(renderer, avg_color.r, avg_color.g, avg_color.b, avg_color.a);
-                            SDL_RenderDrawPoint(renderer, x, y);
-                        }
+                        SDL_SetRenderDrawColor(renderer, avg_color.r, avg_color.g, avg_color.b, avg_color.a);
+                        SDL_RenderDrawPoint(renderer, x, y);
                     }
                 }
-                SDL_RenderPresent(renderer);
+            }
 
-                frame_end = get_time();
-                double frame_time = frame_end - frame_start;
-                total_render_time += frame_time;
-                frame_count++;
+            // After rendering the raytraced scene, overlay the BVH visualization if enabled
+            if (show_bvh_visualization)
+            {
+                // Enable blending for the wireframes
+                SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+                render_debug_visualization(renderer, root, &camera);
+                SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+            }
 
-                if (frame_count % 10 == 0)
-                {
-                    printf("Average frame time: %f seconds (%.2f FPS)\n",
-                           total_render_time / frame_count,
-                           frame_count / total_render_time);
-                }
+            SDL_RenderPresent(renderer);
+
+            frame_end = get_time();
+            double frame_time = frame_end - frame_start;
+            total_render_time += frame_time;
+            frame_count++;
+
+            if (frame_count % 10 == 0)
+            {
+                printf("Average frame time: %f seconds (%.2f FPS)\n",
+                       total_render_time / frame_count,
+                       frame_count / total_render_time);
             }
         }
 

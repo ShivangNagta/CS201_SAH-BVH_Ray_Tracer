@@ -4,4 +4,6 @@
 #define ROTATE_SPEED 0.002f
 #define MAX_DEPTH 5
 #define EPSILON 0.0001f
+#define WIDTH 1000
+#define HEIGHT 600
 
