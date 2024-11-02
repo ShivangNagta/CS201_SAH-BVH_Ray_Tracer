@@ -15,10 +15,8 @@
 #include "Custom/benchmark.h"
 #include "Custom/bvh_visualiser.h"
 
-
 #define NUM_SPHERES 10
 #define MAX_DEPTH 5
-
 
 
 typedef struct
@@ -26,7 +24,7 @@ typedef struct
     float r, g, b;
 } FloatColor;
 
-// Helper function for time calculations
+
 double get_time()
 {
     return (double)clock() / CLOCKS_PER_SEC;
@@ -76,18 +74,11 @@ void display_plot_with_sdl(SDL_Renderer *renderer)
     IMG_Quit();
 }
 
-
-
 //----------------------------------------------------------------------------------------------------
-
-
 
 // MAIN
 
-
-
 //----------------------------------------------------------------------------------------------------
-
 
 #ifdef __APPLE__
 int main(int argc, char *argv[])
@@ -221,14 +212,13 @@ int SDL_main(int argc, char *argv[])
 
         Sphere spheres[NUM_SPHERES];
 
+        spheres[0] = create_sphere(((Vec3){0.0f, -100.0f, -5.0f}), 100.0f);
+        spheres[1] = create_sphere(((Vec3){0.0f, 3.0f, -5.0f}), 3.0f);
 
-        // spheres[0] = create_sphere(((Vec3){0.0f, -100.0f, -5.0f}), 100.0f);
-        // spheres[1] = create_sphere(((Vec3){0.0f, 3.0f, -5.0f}), 3.0f);
-
-        for (int i = 0; i < NUM_SPHERES; i++)
-        {
-            spheres[i] = create_random_sphere();
-        }
+        // for (int i = 0; i < NUM_SPHERES; i++)
+        // {
+        //     spheres[i] = create_random_sphere();
+        // }
 
         printf("Building BVH...\n");
         double bvh_start = get_time();
@@ -248,8 +238,39 @@ int SDL_main(int argc, char *argv[])
         int show_bvh_visualization = 0;
 
         int accumulated_frames = 1;
-        FloatColor accumulated_colors[WIDTH][HEIGHT] = {{{0.0f, 0.0f, 0.0f}}};
+        FloatColor **accumulated_colors = (FloatColor **)malloc(WIDTH * sizeof(FloatColor *));
+        if (!accumulated_colors)
+        {
+            printf("Failed to allocate memory for accumulated_colors\n");
+            SDL_DestroyRenderer(renderer);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return 1;
+        }
+        for (int i = 0; i < WIDTH; i++)
+        {
+            accumulated_colors[i] = (FloatColor *)malloc(HEIGHT * sizeof(FloatColor));
+            if (!accumulated_colors[i])
+            {
+                printf("Failed to allocate memory for accumulated_colors[%d]\n", i);
 
+                for (int j = 0; j < i; j++)
+                {
+                    free(accumulated_colors[j]);
+                }
+                free(accumulated_colors);
+                SDL_DestroyRenderer(renderer);
+                SDL_DestroyWindow(window);
+                SDL_Quit();
+                return 1;
+            }
+            for (int j = 0; j < HEIGHT; j++)
+            {
+                accumulated_colors[i][j].r = 0.0f;
+                accumulated_colors[i][j].g = 0.0f;
+                accumulated_colors[i][j].b = 0.0f;
+            }
+        }
         while (!quit)
         {
 
@@ -312,7 +333,6 @@ int SDL_main(int argc, char *argv[])
                         camera.pitch = fmax(fmin(camera.pitch, M_PI / 2 - 0.1f), -M_PI / 2 + 0.1f);
                         camera_update(&camera);
                         camera.move = 1;
-                 
                     }
                 }
             }
@@ -407,6 +427,12 @@ int SDL_main(int argc, char *argv[])
         printf("Average frame time: %f seconds\n", total_render_time / frame_count);
         printf("Average FPS: %.2f\n", frame_count / total_render_time);
         printf("BVH build time: %f seconds\n", bvh_build_time);
+
+        for (int i = 0; i < WIDTH; i++)
+        {
+            free(accumulated_colors[i]);
+        }
+        free(accumulated_colors);
 
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);

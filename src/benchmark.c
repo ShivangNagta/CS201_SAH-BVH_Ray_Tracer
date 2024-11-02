@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <SDL2/SDL_image.h>
 #include "Custom/benchmark.h"
 #include "Custom/hit.h"
@@ -193,7 +194,7 @@ double benchmark_no_bvh(Sphere* spheres, int num_spheres, int num_rays) {
     printf("No BVH:\n");
     printf("Time: %f seconds\n", time_spent);
 #ifdef _WIN32
-    printf("Intersection tests: %llu\n", intersection_tests);
+    printf("Intersection tests: %" PRIu64 "\n", (uint64_t) intersection_tests);
 #else
     printf("Intersection tests: %lld\n", intersection_tests);
 #endif
