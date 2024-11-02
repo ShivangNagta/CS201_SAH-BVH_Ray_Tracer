@@ -1,5 +1,3 @@
-//A header only implementation for vector3d operations
-
 #pragma once
 
 typedef struct Vec3{

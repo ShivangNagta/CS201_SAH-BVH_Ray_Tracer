@@ -1,11 +1,19 @@
 #include <stdlib.h>
 #include "Custom/sphere.h"
 
+//--------------------------------------------------------------------------------------------------
+
+// Bunch of functions for defining spheres
+// Sphere Struct - 
+// center
+// radius;
+// color;
+
+//--------------------------------------------------------------------------------------------------
 
 float random_float(float min, float max) {
     return min + ((float)rand() / RAND_MAX) * (max - min);
 }
-
 
 
 Vec3 random_in_unit_sphere() {
@@ -41,7 +49,7 @@ Sphere create_sphere(Vec3 center, float radius){
     return sphere;
 }
 
-Sphere create_random_sphere(int is_glass) {
+Sphere create_random_sphere() {
     Sphere sphere = {
         .center = {random_float(-40.0f, 40.0f), random_float(-20.0f, 20.0f), random_float(-10.0, 5)},
         .radius = random_float(0.5f, 5.0f),
@@ -49,5 +57,4 @@ Sphere create_random_sphere(int is_glass) {
     };
     return sphere;
 }
-
 

@@ -5,13 +5,17 @@
 #include "Custom/bvh.h"
 #include "Custom/vec3.h"
 
+//-----------------------------------------------------------------------------------------------------
 
+// NOT WORKING PROPERLY AS OF NOW
+
+// Debug mode for visualising Bounding Boxes (Switch it on by pressing 'o' in Raytracing mode)
+
+//-----------------------------------------------------------------------------------------------------
 
 static SDL_Point world_to_screen(Vec3 point, Camera* camera, int screen_width, int screen_height) {
-    // Transform point to camera space
+
     Vec3 to_point = vec3_sub(point, camera->position);
-    
-    // Get view space coordinates
     float z = vec3_dot(to_point, camera->forward);
     if (z <= 0.1f) {
         return (SDL_Point){-1, -1}; 
@@ -20,17 +24,14 @@ static SDL_Point world_to_screen(Vec3 point, Camera* camera, int screen_width, i
     float x = vec3_dot(to_point, camera->right);
     float y = vec3_dot(to_point, camera->up);
     
-    // Perspective projection
     float fov_rad = camera->fov * (M_PI / 180.0f);
     float half_height = tanf(fov_rad / 2.0f);
     float aspect_ratio = (float)screen_width / screen_height;
     float half_width = aspect_ratio * half_height;
-    
-    // Project to screen space
+
     float screen_x = (x / (z * half_width * 2.0f) + 0.5f) * screen_width;
     float screen_y = (-y / (z * half_height * 2.0f) + 0.5f) * screen_height;
     
-    // Bounds checking
     if (screen_x < -screen_width || screen_x > screen_width * 2 ||
         screen_y < -screen_height || screen_y > screen_height * 2) {
         return (SDL_Point){-1, -1};
@@ -51,7 +52,6 @@ static void draw_debug_line(SDL_Renderer* renderer, Vec3 start, Vec3 end,
         end_screen.x >= -screen_width && end_screen.x <= screen_width * 2 &&
         end_screen.y >= -screen_height && end_screen.y <= screen_height * 2) {
         
-        // Draw multiple slightly offset lines to create a thicker appearance
         SDL_RenderDrawLine(renderer, start_screen.x, start_screen.y,
                           end_screen.x, end_screen.y);
         SDL_RenderDrawLine(renderer, start_screen.x+1, start_screen.y,
@@ -65,33 +65,30 @@ static void draw_debug_line(SDL_Renderer* renderer, Vec3 start, Vec3 end,
     }
 }
 
-// Draw an AABB wireframe
+
 static void draw_aabb(SDL_Renderer* renderer, AABB box, Camera* camera, 
                      int screen_width, int screen_height) {
     Vec3 corners[8] = {
-        {box.min.x, box.min.y, box.min.z}, // 0
-        {box.max.x, box.min.y, box.min.z}, // 1
-        {box.max.x, box.max.y, box.min.z}, // 2
-        {box.min.x, box.max.y, box.min.z}, // 3
-        {box.min.x, box.min.y, box.max.z}, // 4
-        {box.max.x, box.min.y, box.max.z}, // 5
-        {box.max.x, box.max.y, box.max.z}, // 6
-        {box.min.x, box.max.y, box.max.z}  // 7
+        {box.min.x, box.min.y, box.min.z}, 
+        {box.max.x, box.min.y, box.min.z}, 
+        {box.max.x, box.max.y, box.min.z}, 
+        {box.min.x, box.max.y, box.min.z}, 
+        {box.min.x, box.min.y, box.max.z}, 
+        {box.max.x, box.min.y, box.max.z}, 
+        {box.max.x, box.max.y, box.max.z}, 
+        {box.min.x, box.max.y, box.max.z}  
     };
     
-    // Front face
     draw_debug_line(renderer, corners[0], corners[1], camera, screen_width, screen_height);
     draw_debug_line(renderer, corners[1], corners[2], camera, screen_width, screen_height);
     draw_debug_line(renderer, corners[2], corners[3], camera, screen_width, screen_height);
     draw_debug_line(renderer, corners[3], corners[0], camera, screen_width, screen_height);
     
-    // Back face
     draw_debug_line(renderer, corners[4], corners[5], camera, screen_width, screen_height);
     draw_debug_line(renderer, corners[5], corners[6], camera, screen_width, screen_height);
     draw_debug_line(renderer, corners[6], corners[7], camera, screen_width, screen_height);
     draw_debug_line(renderer, corners[7], corners[4], camera, screen_width, screen_height);
     
-    // Connecting lines
     draw_debug_line(renderer, corners[0], corners[4], camera, screen_width, screen_height);
     draw_debug_line(renderer, corners[1], corners[5], camera, screen_width, screen_height);
     draw_debug_line(renderer, corners[2], corners[6], camera, screen_width, screen_height);

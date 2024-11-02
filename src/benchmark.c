@@ -19,6 +19,19 @@
     #include <inttypes.h>
 #endif
 
+
+//----------------------------------------------------------------------------------------------------
+
+// Benchmark Testing
+// Testing is done for the intersection of rays with the randomly generated spheres.
+// It involves comparison between BVH and no BVH implementation.
+// The bvh implementation might show constant time run, as the test cases are not enough.
+// Result is plotted with gnuplot(c plotting library) and saved as png, which is further rendered
+// with sdl2 (windowing library uses in this project). Plot data is saved in plot_benchmark.gnu
+
+//----------------------------------------------------------------------------------------------------
+
+
 void run_gnuplot(void) {
     #ifdef _WIN32
         char command[512];
@@ -115,7 +128,7 @@ void create_gnuplot_script(const char* data_filename) {
     fclose(gnuplot_script);
 }
 
-// Helper function to get max time for y-axis scaling
+
 double get_max_time(const char* filename) {
     FILE* file = fopen(filename, "r");
     if (!file) return 0.0;
@@ -134,13 +147,6 @@ double get_max_time(const char* filename) {
 }
 
 
-
-
-
-
-
-
-// Function to save benchmark results to a file
 void save_benchmark_data(const char* filename, int sphere_count, double time_no_bvh, double time_with_bvh) {
     FILE* file = fopen(filename, "a");
     if (file == NULL) {

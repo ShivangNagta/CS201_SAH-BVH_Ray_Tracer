@@ -6,6 +6,15 @@
 #include "Custom/hit.h"
 #include "Custom/constants.h"
 
+//----------------------------------------------------------------------------------------------------
+
+// Main implementation of Bounding Volume Hierarchies construction using Surface Area Heurestics
+// Time Complexity - O( nlogn )
+// Axis Aligned Bounding Boxes (AABB) are used for storing objects (child AABBs or sphers (if leaf node))
+// Surface Area Heurestics (SAH) is used for finding the cost effective split plane for dividing the parent node.
+
+//----------------------------------------------------------------------------------------------------
+
 
 AABB create_empty_aabb() {
     return (AABB){
@@ -48,7 +57,6 @@ float get_aabb_surface_area(AABB box) {
 }
 
 
-// BVH building functions
 float evaluate_sah(Sphere* spheres, int start, int end, int axis, float split) {
     int left_count = 0, right_count = 0;
     AABB left_bounds = create_empty_aabb();
@@ -77,18 +85,34 @@ float evaluate_sah(Sphere* spheres, int start, int end, int axis, float split) {
     return 0.125f + (left_count * left_sa + right_count * right_sa);
 }
 
+
+//----------------------------------------------------------------------------------------------------
+
+// BVH (Bounding Volume Hierarchy) construction using a top-down approach. 
+// Top-Down BVH Construction :
+// - Root Node Creation : contains all spheres as AABB.
+// - Object Partition : AABB partition with Surface Area Heurestics (SAH).
+// - Child Nodes Creation: Recursive creation and partitioning of child node.
+// - Repeat Until Leaf Nodes: Partioning until each subset contains a single sphere
+//                           or depth limit is reached (20 here)
+
+//----------------------------------------------------------------------------------------------------
+
+
+
+
 BVHNode* build_bvh_node(Sphere* spheres, int start, int end, int depth) {
     BVHNode* node = (BVHNode*)malloc(sizeof(BVHNode));
     node->bounds = create_empty_aabb();
     
-    // Create bounding box for all spheres in this node
+    
     for (int i = start; i < end; i++) {
         node->bounds = combine_aabb(node->bounds, create_aabb_from_sphere(&spheres[i]));
     }
     
     int num_spheres = end - start;
     
-    // Leaf node criteria
+
     if (num_spheres <= 1 || depth >= 20) {
         node->left = node->right = NULL;
         node->sphere = &spheres[start];
@@ -96,14 +120,12 @@ BVHNode* build_bvh_node(Sphere* spheres, int start, int end, int depth) {
         return node;
     }
     
-    // Find best split using SAH
     float best_cost = INFINITY;
     int best_axis = 0;
     float best_split = 0;
     
-    // Try each axis
+
     for (int axis = 0; axis < 3; axis++) {
-        // Sample several split positions
         for (int i = 1; i < 8; i++) {
             float split = node->bounds.min.x + 
                 (i / 8.0f) * (node->bounds.max.x - node->bounds.min.x);
@@ -117,7 +139,7 @@ BVHNode* build_bvh_node(Sphere* spheres, int start, int end, int depth) {
         }
     }
     
-    // Partition spheres based on best split
+
     int mid = start;
     for (int i = start; i < end;) {
         float center = 0;
@@ -128,7 +150,6 @@ BVHNode* build_bvh_node(Sphere* spheres, int start, int end, int depth) {
         }
         
         if (center < best_split) {
-            // Swap spheres[i] and spheres[mid]
             Sphere temp = spheres[i];
             spheres[i] = spheres[mid];
             spheres[mid] = temp;
@@ -139,7 +160,6 @@ BVHNode* build_bvh_node(Sphere* spheres, int start, int end, int depth) {
         }
     }
     
-    // Create child nodes
     node->left = build_bvh_node(spheres, start, mid, depth + 1);
     node->right = build_bvh_node(spheres, mid, end, depth + 1);
     node->sphere = NULL;

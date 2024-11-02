@@ -1,11 +1,17 @@
 #include <math.h>
 #include <stdlib.h>
+#include "Custom/vec3.h"
 
-typedef struct Vec3{
-    float x;
-    float y;
-    float z;
-} Vec3;
+//--------------------------------------------------------------------------------------------------
+
+// Helper vector3 functions
+// Vec3 struct -
+// float x
+// float y
+// float z
+
+//--------------------------------------------------------------------------------------------------
+
 
 
 Vec3 vec3_sub(Vec3 a, Vec3 b){

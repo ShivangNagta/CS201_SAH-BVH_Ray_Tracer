@@ -4,6 +4,18 @@
 #include "Custom/bvh.h"
 #include <math.h>
 
+//--------------------------------------------------------------------------------------------------
+
+// ray_sphere_intersect() - Returns the Hitrecord for the ray intersecting with the sphere
+// Hitrecords is a struct containing distance 
+// - t (distance of the hitpoint from the camera initially, then the distance of the next hitpoint from the current hitpoint)
+// - point (position of the current hitpoint)
+// - normal (normal to the surface at hitpoint - point)
+// - hit_something ( bool in terms of int)
+// - sphere* (pointer to current sphere object)
+
+//--------------------------------------------------------------------------------------------------
+
 HitRecord ray_sphere_intersect(Ray ray, Sphere *sphere) {
     HitRecord rec = {0};
     Vec3 oc = vec3_sub(ray.origin, sphere->center);
@@ -26,6 +38,14 @@ HitRecord ray_sphere_intersect(Ray ray, Sphere *sphere) {
     return rec;
 }
 
+//--------------------------------------------------------------------------------------------------
+
+// ray_aabb_intersect() - Returns the 1 if the given AABB is hit with the ray otherwise 0
+// Performs slab test to find the intersection
+
+//--------------------------------------------------------------------------------------------------
+
+
 int ray_aabb_intersect(Ray ray, AABB box) {
     float tx1 = (box.min.x - ray.origin.x) / ray.direction.x;
     float tx2 = (box.max.x - ray.origin.x) / ray.direction.x;
@@ -45,6 +65,14 @@ int ray_aabb_intersect(Ray ray, AABB box) {
     return tmax >= tmin && tmax > 0;
 }
 
+//--------------------------------------------------------------------------------------------------
+
+// ray_bvh_intersect() - Returns the hitrecord for the given ray
+// Main function for intersection test by traversing Bounding Volume Hierarchies (BVH) using DFS
+
+//--------------------------------------------------------------------------------------------------
+
+
 HitRecord ray_bvh_intersect(Ray ray, BVHNode* node) {
     HitRecord rec = {0};
     
@@ -53,11 +81,9 @@ HitRecord ray_bvh_intersect(Ray ray, BVHNode* node) {
     }
     
     if (node->sphere != NULL) {
-        // Leaf node
         return ray_sphere_intersect(ray, node->sphere);
     }
     
-    // Internal node - traverse children
     HitRecord left_hit = ray_bvh_intersect(ray, node->left);
     HitRecord right_hit = ray_bvh_intersect(ray, node->right);
     

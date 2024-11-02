@@ -76,6 +76,19 @@ void display_plot_with_sdl(SDL_Renderer *renderer)
     IMG_Quit();
 }
 
+
+
+//----------------------------------------------------------------------------------------------------
+
+
+
+// MAIN
+
+
+
+//----------------------------------------------------------------------------------------------------
+
+
 #ifdef __APPLE__
 int main(int argc, char *argv[])
 #else
@@ -101,6 +114,12 @@ int SDL_main(int argc, char *argv[])
         // Benchmark Testing
         // Runs testing defined in benchmark.c through function call - run_benchmark_with_plotting();
         // Testing is done for the intersection of rays with the randomly generated spheres.
+        // It involves comparison in tests between bvh and no bvh implementation.
+        // The bvh implementation might show constant time run, as the test cases are not enough.
+        // Result is plotted with gnuplot(c plotting library) and saved as png, which is further rendered
+        // with sdl2 (windowing library uses in this project). Plot data is generated in plot_benchmark.gnu
+
+        //----------------------------------------------------------------------------------------------------
 
     case 1:
     {
@@ -153,11 +172,15 @@ int SDL_main(int argc, char *argv[])
 
         // Realtime Raytracing on CPU
         // Scene has only spheres for now, adding custom mesh is not yet supported
-        // Both with and without BVH can be used for rendering the scene (not much
-        // difference would be observed for less number of spheres, and cpu would not
+        // Both BVH and without can be used for rendering the scene (not much
+        // difference would be observed for less number of spheres, and cpu would not be
         // able to render high number of spheres, so kindly use benchmark testing to see the difference)
         // Number of spheres can be defined in constants header file (include/Custom/constants.h)
         // Camera has been added for moving in the defined scene
+        // Debug mode is added to see Bounding Volumes by pressing 'o'
+        // but its projection is still not properly aligned which needs to be corrected
+
+        //----------------------------------------------------------------------------------------------------
 
     case 2:
     {
@@ -204,7 +227,7 @@ int SDL_main(int argc, char *argv[])
 
         for (int i = 0; i < NUM_SPHERES; i++)
         {
-            spheres[i] = create_random_sphere(0);
+            spheres[i] = create_random_sphere();
         }
 
         printf("Building BVH...\n");
@@ -278,40 +301,18 @@ int SDL_main(int argc, char *argv[])
                         show_bvh_visualization = !show_bvh_visualization;
                         printf("BVH visualization %s\n", show_bvh_visualization ? "enabled" : "disabled");
                         break;
-                        // case SDLK_i:
-                        //     if (show_bvh_visualization)
-                        //         move_camera(&vis_camera, 1.0f, 0, 0);
-                        //     break;
-                        // case SDLK_k:
-                        //     if (show_bvh_visualization)
-                        //         move_camera(&vis_camera, -1.0f, 0, 0);
-                        //     break;
-                        // case SDLK_j:
-                        //     if (show_bvh_visualization)
-                        //         move_camera(&vis_camera, 0, -1.0f, 0);
-                        //     break;
-                        // case SDLK_l:
-                        //     if (show_bvh_visualization)
-                        //         move_camera(&vis_camera, 0, 1.0f, 0);
-                        //     break;
                     }
                 }
                 else if (e.type == SDL_MOUSEMOTION)
                 {
                     if (e.motion.state & SDL_BUTTON_LMASK)
                     {
-                        // if (show_bvh_visualization)
-                        // {
-                        //     rotate_camera(&vis_camera, e.motion.xrel * 0.5f, -e.motion.yrel * 0.5f);
-                        // }
-                        // else
-                        // {
                         camera.yaw += e.motion.xrel * ROTATE_SPEED;
                         camera.pitch -= e.motion.yrel * ROTATE_SPEED;
                         camera.pitch = fmax(fmin(camera.pitch, M_PI / 2 - 0.1f), -M_PI / 2 + 0.1f);
                         camera_update(&camera);
                         camera.move = 1;
-                        // }
+                 
                     }
                 }
             }
@@ -321,7 +322,6 @@ int SDL_main(int argc, char *argv[])
                 SDL_RenderClear(renderer);
 
                 render_debug_visualization(renderer, root, &camera);
-                draw_camera_debug(renderer, &camera, WIDTH, HEIGHT);
                 SDL_RenderPresent(renderer);
             }
             else

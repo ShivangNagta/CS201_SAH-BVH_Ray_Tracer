@@ -2,6 +2,22 @@
 #include "Custom/hit.h"
 #include <math.h>
 
+//--------------------------------------------------------------------------------------------------
+
+// Main function for recursive ray tracing (up to a specified depth).
+// The closest intersection of the ray can be calculated using two methods:
+// Method 1 - Bounding Volume Hierarchies (BVH) with Surface Area Heuristics (SAH) - O(log n), but building the BVH is O(n log n).
+// Method 2 - Brute force, traversing all objects (spheres) - O(n) for intersection tests.
+
+// Recursion ends earlier if the ray directly misses all objects or ends up going towards
+// the sky after reflection.
+// This is a naive implementation of the microfacet model, considering only material roughness.
+// Many other material properties are not included for simplicity.
+// A given ray takes the base color of the material it hits and blends it with the color
+// of the reflected ray recursively.
+
+//--------------------------------------------------------------------------------------------------
+
 SDL_Color trace_ray(Ray ray, Sphere *spheres, int num_spheres, int depth, BVHNode *bvh)
 {
     if (depth <= 0)
