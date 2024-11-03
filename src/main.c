@@ -15,7 +15,7 @@
 #include "Custom/benchmark.h"
 #include "Custom/bvh_visualiser.h"
 
-#define NUM_SPHERES 2
+#define NUM_SPHERES 20
 #define MAX_DEPTH 5
 
 
@@ -212,13 +212,13 @@ int SDL_main(int argc, char *argv[])
 
         Sphere spheres[NUM_SPHERES];
 
-        spheres[0] = create_sphere(((Vec3){0.0f, -100.0f, -5.0f}), 100.0f);
-        spheres[1] = create_sphere(((Vec3){0.0f, 3.0f, -5.0f}), 3.0f);
+        // spheres[0] = create_sphere(((Vec3){0.0f, -100.0f, 30.0f}), 100.0f);
+        // spheres[1] = create_sphere(((Vec3){0.0f, 3.0f, 30.0f}), 3.0f);
 
-        // for (int i = 0; i < NUM_SPHERES; i++)
-        // {
-        //     spheres[i] = create_random_sphere();
-        // }
+        for (int i = 0; i < NUM_SPHERES; i++)
+        {
+            spheres[i] = create_random_sphere();
+        }
 
         printf("Building BVH...\n");
         double bvh_start = get_time();
