@@ -61,10 +61,10 @@ This project aims to improve the efficiency of ray intersection tests in ray tra
 
 2. Clone the Repository:
    ```bash
-   git clone https://github.com/yourusername/raytracer.git
+   git clone https://github.com/ShivangNagta/CS201_SAH-BVH_Ray_Tracer.git
    ```
    ```bash
-   cd raytracer
+   cd CS201_SAH-BVH_Ray_Tracer
    ```
 4. Build the project
    ```bash
